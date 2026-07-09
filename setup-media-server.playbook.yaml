@@ -28,7 +28,7 @@
     - name: Validate bind_host is one of the supported values
       assert:
         that:
-          - bind_host in ['127.0.0.1', '0.0.0.0']
+          - bind_host | default('127.0.0.1') in ['127.0.0.1', '0.0.0.0']
         fail_msg: >-
           bind_host must be either 127.0.0.1 (localhost-only) or 0.0.0.0
           (all interfaces, for LAN access) — service initialisation connects
@@ -184,7 +184,7 @@
         owner: "{{ ansible_facts.user_uid }}"
         group: "{{ ansible_facts.user_gid }}"
       loop:
-        - "{{ content_dir }}"
+        - "{{ content_dir | default(root_dir ~ '/content') }}"
         - "{{ media_dir }}"
         - "{{ torrents_dir }}"
         - "{{ media_dir }}/movies"

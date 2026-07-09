@@ -3,25 +3,23 @@ internal_network: "media-network"
 public_network: "reverse-proxy"
 
 root_dir: "/home/{{ ansible_user }}/{{ server_name }}"
-content_dir: "{{ root_dir }}/content"
-media_dir: "{{ content_dir }}/media"
-torrents_dir: "{{ content_dir }}/torrents"
+# content_dir, bind_host, enable_firewall, vpn_enabled, vpn_provider,
+# vpn_type, ssh_port, and the VPN credential vars are intentionally NOT
+# defaulted here — only in inventory.example.ini and via `| default(...)`
+# filters at each point of use in the templates/playbook. Defining them here
+# too used to cause vars.yml to silently win over inventory.ini's overrides
+# whenever the playbook's `gather_facts: yes` ran (an ansible-core
+# vars_files/inventory-vars precedence quirk) — since inventory.ini's
+# deployment-specific values differ from these VPS-safe defaults, that meant
+# they'd silently revert to the vars.yml default on every real run despite
+# inventory.ini saying otherwise.
+media_dir: "{{ content_dir | default(root_dir ~ '/content') }}/media"
+torrents_dir: "{{ content_dir | default(root_dir ~ '/content') }}/torrents"
 config_dir: "{{ root_dir }}/config"
 jellyfin_dir: "{{ root_dir }}/jellyfin"
 seerr_dir: "{{ root_dir }}/seerr"
 qbittorrent_dir: "{{ root_dir }}/torrent"
 management_dir: "{{ root_dir }}/media-management"
-
-# Network Binding (Defaults to localhost for VPS security behind Traefik. Override to 0.0.0.0 for LAN access)
-bind_host: "127.0.0.1"
-
-# Firewall
-enable_firewall: true
-
-# VPN Settings (Routing qBittorrent through Gluetun sidecar)
-vpn_enabled: false
-vpn_provider: "custom"
-vpn_type: "wireguard"
 # Add provider specific variables to inventory.ini if vpn_enabled is true
 # vpn_username: "XXXX"
 # vpn_password: "XXXX"
@@ -50,9 +48,9 @@ radarr_server: "http://radarr:7878"
 sonarr_server: "http://sonarr:8989"
 bazarr_server: "http://bazarr:6767"
 
-# SSH (UFW allow rule) — set this if your VPS uses a non-standard SSH port,
-# otherwise the firewall will lock you out.
-ssh_port: 22
+# SSH (UFW allow rule) — set ssh_port in inventory.ini if your VPS uses a
+# non-standard SSH port, otherwise the firewall will lock you out. Defaults
+# to 22 via `| default(22)` where it's used (see comment above).
 
 # qBittorrent WebUI username (defaults to your SSH user)
 qbittorrent_username: "{{ ansible_user }}"
